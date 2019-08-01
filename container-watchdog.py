@@ -10,7 +10,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=loggi
 timerRestarted = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '60'))
 timerOK = int(os.getenv('POLLING_INTERVAL', '10'))
 dockerHost = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
-slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL', 'http://asdeeeerasd.fi/asdoeeiek')
+slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL', '')
 restartedContainers = []
 slack_message_content = {}
 
