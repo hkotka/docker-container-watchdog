@@ -50,7 +50,7 @@ while True:
         if container.short_id in restartedContainers and healthStatus == 'healthy':
             logging.info("Container %s has recovered and is now healthy!", container.name)
             slack_message_content['text'] = ("[Container watchdog]: Container: [ *_{0}_* ] has *recovered* with healthstatus: [ _{1}_ ] and state: [ _{2}_ ]"
-            " on hostmachine [ _{3}_ ]".format(container.name, healthStatus, containerStatus, dockerHost))
+                                            " on hostmachine [ _{3}_ ]".format(container.name, healthStatus, containerStatus, dockerHost))
             sendSlackMessage(slack_message_content)
             restartedContainers.remove(container.short_id)
 #  If container is in unhealthy or exited status, restart. Send Slack message when trying to restart container. Add container to list of restarted containers.
