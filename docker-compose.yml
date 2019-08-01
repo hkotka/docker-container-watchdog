@@ -1,0 +1,16 @@
+version: '2.2'
+services:
+  watchdog:
+    image: docker-container-watchdog:latest
+    mem_limit: 512m
+    cpus: 1
+    environment:
+      - DOCKER_HOSTMACHINE=${HOSTNAME}
+      - POLLING_INTERVAL=30
+      - POLLING_INTERVAL_AFTER_RESTART=600
+#      - SLACK_WEBHOOK_URL=
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    security_opt:
+     - label:disable
