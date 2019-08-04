@@ -7,8 +7,8 @@ import os
 
 # Set logging options and variables
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
-timerRestarted = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '60'))
-timerOK = int(os.getenv('POLLING_INTERVAL', '10'))
+pollingIntervalAfterRestart = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '60'))
+pollingInterval = int(os.getenv('POLLING_INTERVAL', '10'))
 dockerHost = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
 slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL', '')
 restartedContainers = []
@@ -84,8 +84,8 @@ while True:
 
 # Wait to poll again, longer if restarts were done in previous loop
     if restartStatus is True:
-        logging.info("Waiting %s seconds until next polling, because container was restarted", timerRestarted)
-        time.sleep(timerRestarted)
+        logging.info("Waiting %s seconds until next polling, because container was restarted", pollingIntervalAfterRestart)
+        time.sleep(pollingIntervalAfterRestart)
     elif restartStatus is False:
         logging.info("All containers are in healthy state!")
-        time.sleep(timerOK)
+        time.sleep(pollingInterval)
