@@ -6,15 +6,17 @@ import requests
 import os
 import re
 import smtplib
+from email.message import EmailMessage
 
 # Set logging options and variables
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
-pollingIntervalAfterRestart = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '60'))
-pollingInterval = int(os.getenv('POLLING_INTERVAL', '10'))
+pollingIntervalAfterRestart = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '600'))
+pollingInterval = int(os.getenv('POLLING_INTERVAL', '20'))
 dockerHost = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
 slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL', '')
-emailSender = os.getenv('EMAIL_SENDER', 'container.watchdog@domain.com')
+emailSender = os.getenv('EMAIL_SENDER', '')
 emailReceiver = os.getenv('EMAIL_RECEIVER', '')
+smtpServer = os.getenv('SMTP_SERVER', '')
 restartedContainers = []
 notificationContent = {}
 
@@ -24,7 +26,6 @@ try:
     client.version()
     logging.info("Connection to Docker socket OK")
 except Exception as e:
-    logging.fatal("Cannot connect to Docker daemon, make sure /var/run/docker.sock is usable for watchdog!")
     logging.fatal("%s", e)
     exit()
 
@@ -37,20 +38,20 @@ def sendSlackMessage(notificationContent):
             logging.error("%s", e)
 
 def sendSmtpMessage(notificationContent):
-    if emailReceiver != "":
+    if emailReceiver != "" and smtpServer != "":
         try:
-            notificationContent = re.sub('*_', '', notificationContent) # Remove characters used for Slack message formatting
-            emailMessage = """\
-            Subject: Container Watchdog Alert Notification
-
-            {1}
-            """.format(notificationContent)
-
-            mail = smtplib.SMTP("smtp.outlook.office365.com", 587, timeout=20)
-            mail.sendmail(emailSender, emailReceiver, emailMessage)
+            emailContent = re.sub('[^ :A-Za-z0-9]+', '', notificationContent)
+            emailMessage = EmailMessage()
+            emailMessage.set_content(emailContent)
+            emailMessage['Subject'] = 'Container Watchdog Alert notification'
+            emailMessage['From'] = emailSender
+            emailMessage['To'] = emailReceiver
+            mail = smtplib.SMTP(smtpServer, 25, timeout=40)
+            mail.send_message(emailMessage)
+            logging.info("Email sent to %s with content: %s", emailReceiver, emailContent)
             mail.quit()
         except Exception as e:
-            raise e
+            logging.error("%s", e)
 
 # Check and return container health status. If 'Health' key doesn't exist for container(healthcheck not set), log exception.
 def getContainerHealthStatus(container):
@@ -67,7 +68,6 @@ def restartContainer(container):
         notificationContent['text'] = ("[Container watchdog]: has *_restarted_* container: [ *_{0}_* ] which had healthstatus: [ _{1}_ ] and state:"
                                         " [ _{2}_ ] on hostmachine [ _{3}_ ]".format(container.name, containerHealthStatus,
                                          containerStatus, dockerHost))
-# Add container id to a list of restarted containers, this will be used to check weather container has recovered after restart
         if container.short_id not in restartedContainers:
             restartedContainers.append(container.short_id)
     except Exception as e:
@@ -85,26 +85,26 @@ def containerRecovered(container):
 # Run loop indefinetly polling every 30 seconds normally or in 15 minutes after watchdog has restarted a container.
 while True:
     restartStatus = False
-    ContainerList = client.containers.list(all)
+    ContainerList = client.containers.list()
     for container in ContainerList:
         containerStatus = container.status
         containerHealthStatus = getContainerHealthStatus(container)
-# Check if the container was restarted previously and is now healthy, log and send Slack message if recovered and remove from a list of restarted containers
+        # Check if the container was restarted previously and is now healthy. Send Slack/email notification. Remove from a list of restarted containers
         if container.short_id in restartedContainers and containerHealthStatus == 'healthy':
             containerRecovered(container)
             sendSlackMessage(notificationContent)
-            sendSmtpMessage(notificationContent)
-#  If container is in unhealthy or exited status, restart. Send Slack message when trying to restart container. Add container to list of restarted containers.
-        elif containerHealthStatus == 'unhealthy' or containerStatus == 'exited':
+            sendSmtpMessage(notificationContent['text'])
+        #  If container is in unhealthy or exited status, restart and end Slack/Email notification. Add container to list of restarted containers.
+        elif containerHealthStatus == 'unhealthy':
             logging.error("Found container in unhealthy state! Container: %s has health status: %s and container status: %s",
                          container.name, containerHealthStatus, containerStatus)
             restartContainer(container)
             sendSlackMessage(notificationContent)
-            sendSmtpMessage(notificationContent)
+            sendSmtpMessage(notificationContent['text'])
             restartStatus = True
         logging.debug('%s - %s - %s', container.name, containerHealthStatus, containerStatus)
 
-# Wait to poll again, longer if restarts were done in previous loop
+    # Wait to poll again, longer if restarts were done in previous loop
     if restartStatus is True:
         logging.info("Waiting %s seconds until next polling, because container was restarted", pollingIntervalAfterRestart)
         time.sleep(pollingIntervalAfterRestart)
