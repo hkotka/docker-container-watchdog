@@ -13,7 +13,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=loggi
 pollingIntervalAfterRestart: int = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '600'))
 pollingInterval: int = int(os.getenv('POLLING_INTERVAL', '20'))
 dockerHost: str = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
-slack_webhook_url: str = os.getenv('SLACK_WEBHOOK_URL', '')
+slackWebhookUrl: str = os.getenv('SLACK_WEBHOOK_URL', '')
 emailSender: str = os.getenv('EMAIL_SENDER', '')
 emailReceiver: str = os.getenv('EMAIL_RECEIVER', '')
 smtpServer: str = os.getenv('SMTP_SERVER', '')
@@ -30,9 +30,9 @@ except Exception as e:
     exit()
 
 def sendSlackMessage(notificationContent):
-    if slack_webhook_url != "":
+    if slackWebhookUrl != "":
         try:
-            requests.post(slack_webhook_url, data=json.dumps(notificationContent), headers={'Content-Type': 'application/json'})
+            requests.post(slackWebhookUrl, data=json.dumps(notificationContent), headers={'Content-Type': 'application/json'})
             logging.info("Message sent to Slack webhook: %s", notificationContent['text'])
         except Exception as e:
             logging.error("%s", e)
