@@ -10,15 +10,15 @@ from email.message import EmailMessage
 
 # Set logging options and variables
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
-pollingIntervalAfterRestart = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '600'))
-pollingInterval = int(os.getenv('POLLING_INTERVAL', '20'))
-dockerHost = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
-slack_webhook_url = os.getenv('SLACK_WEBHOOK_URL', '')
-emailSender = os.getenv('EMAIL_SENDER', '')
-emailReceiver = os.getenv('EMAIL_RECEIVER', '')
-smtpServer = os.getenv('SMTP_SERVER', '')
-restartedContainers = []
-notificationContent = {}
+pollingIntervalAfterRestart: int = int(os.getenv('POLLING_INTERVAL_AFTER_RESTART', '600'))
+pollingInterval: int = int(os.getenv('POLLING_INTERVAL', '20'))
+dockerHost: str = os.getenv('DOCKER_HOSTMACHINE', 'UNKNOWN')
+slack_webhook_url: str = os.getenv('SLACK_WEBHOOK_URL', '')
+emailSender: str = os.getenv('EMAIL_SENDER', '')
+emailReceiver: str = os.getenv('EMAIL_RECEIVER', '')
+smtpServer: str = os.getenv('SMTP_SERVER', '')
+restartedContainers: list = []
+notificationContent: dict = {}
 
 # Test and establish connection to docker socket
 try:
@@ -40,7 +40,7 @@ def sendSlackMessage(notificationContent):
 def sendSmtpMessage(notificationContent):
     if emailReceiver != "" and smtpServer != "":
         try:
-            emailContent = re.sub('[^ :A-Za-z0-9]+', '', notificationContent)
+            emailContent: str = re.sub('[^ :A-Za-z0-9]+', '', notificationContent)
             emailMessage = EmailMessage()
             emailMessage.set_content(emailContent)
             emailMessage['Subject'] = 'Container Watchdog Alert notification'
@@ -56,9 +56,9 @@ def sendSmtpMessage(notificationContent):
 # Check and return container health status. If 'Health' key doesn't exist for container(healthcheck not set), log exception.
 def getContainerHealthStatus(container):
     try:
-        containerHealthStatus = container.attrs['State']['Health']['Status']
+        containerHealthStatus: str = container.attrs['State']['Health']['Status']
     except KeyError:
-        containerHealthStatus = 'nokey'
+        containerHealthStatus: str = 'nokey'
     return containerHealthStatus
 
 def restartContainer(container):
@@ -84,11 +84,11 @@ def containerRecovered(container):
 
 # Run loop indefinetly polling every 30 seconds normally or in 15 minutes after watchdog has restarted a container.
 while True:
-    restartStatus = False
-    ContainerList = client.containers.list()
+    restartStatus: bool = False
+    ContainerList: list = client.containers.list()
     for container in ContainerList:
         containerStatus = container.status
-        containerHealthStatus = getContainerHealthStatus(container)
+        containerHealthStatus: str = getContainerHealthStatus(container)
         # Check if the container was restarted previously and is now healthy. Send Slack/email notification. Remove from a list of restarted containers
         if container.short_id in restartedContainers and containerHealthStatus == 'healthy':
             containerRecovered(container)
