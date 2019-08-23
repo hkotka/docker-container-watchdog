@@ -43,19 +43,19 @@ def send_slack_message(content):
 
 def send_smtp_message(content):
     if email_receiver != "" and smtp_server != "":
+        email_content: str = re.sub('[^ :A-Za-z0-9]+', '', content)
+        email_message = EmailMessage()
+        email_message.set_content(email_content)
+        email_message['Subject'] = 'Container Watchdog Alert notification'
+        email_message['From'] = email_sender
+        email_message['To'] = email_receiver
+        mail = smtplib.SMTP(smtp_server, 25, timeout=40)
         try:
-            email_content: str = re.sub('[^ :A-Za-z0-9]+', '', content)
-            email_message = EmailMessage()
-            email_message.set_content(email_content)
-            email_message['Subject'] = 'Container Watchdog Alert notification'
-            email_message['From'] = email_sender
-            email_message['To'] = email_receiver
-            mail = smtplib.SMTP(smtp_server, 25, timeout=40)
             mail.send_message(email_message)
             logging.info("Email sent to %s with content: %s", email_receiver, email_content)
-            mail.quit()
         except Exception as err:
             logging.error("%s", err)
+        mail.quit()
 
 
 def get_container_health_status(container_object):
