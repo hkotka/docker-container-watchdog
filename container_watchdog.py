@@ -100,8 +100,7 @@ while True:
             container_recovered(container)
             send_slack_message(notification_content)
             send_smtp_message(notification_content['text'])
-        # If container is in unhealthy or exited status, restart and end Slack/Email notification.
-        # Add container to list of restarted containers.
+        # If container is in unhealthy or exited status, restart and send Slack/Email notification.
         elif container_health_status == 'unhealthy':
             logging.error("Found container in unhealthy state! Container: %s has health status: %s and container status: %s",
                           container.name, container_health_status, container_status)
