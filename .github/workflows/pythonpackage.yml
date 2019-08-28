@@ -25,5 +25,5 @@ jobs:
       run: |
         pip install prospector
         # stop the build if there are Python syntax errors or undefined names
-        prospector --s=veryhigh --max-line-length=200 .
+        prospector --strictness=veryhigh --max-line-length=200 .
 
