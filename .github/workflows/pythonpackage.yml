@@ -26,7 +26,6 @@ jobs:
         pip install prospector
     - name: Lint with prospector
       run: |
-        pip install prospector
         # stop the build if there are Python syntax errors or undefined names
         prospector --strictness=veryhigh --max-line-length=200 .
 
