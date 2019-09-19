@@ -31,7 +31,7 @@ except Exception as err:
     exit()
 
 
-def send_slack_message(content):
+def send_slack_message(content) -> None:
     if slack_webhook_url != "":
         try:
             requests.post(slack_webhook_url, data=json.dumps(content),
@@ -41,7 +41,7 @@ def send_slack_message(content):
             logging.error("%s", err)
 
 
-def send_smtp_message(content):
+def send_smtp_message(content) -> None:
     if email_receiver != "" and smtp_server != "":
         email_content: str = re.sub('[^ :A-Za-z0-9]+', '', content)
         email_message = EmailMessage()
@@ -58,15 +58,15 @@ def send_smtp_message(content):
         mail.quit()
 
 
-def get_container_health_status(container_object):
+def get_container_health_status(container_object) -> str:
     try:
-        health_status: str = container_object.attrs['State']['Health']['Status']
+        health_status = container_object.attrs['State']['Health']['Status']
     except KeyError:
-        health_status: str = 'nokey'
+        health_status = 'nokey'
     return health_status
 
 
-def restart_container(container_object):
+def restart_container(container_object) -> None:
     try:
         container_object.restart()
         logging.info("Restarted container: %s", container_object.name)
@@ -80,7 +80,7 @@ def restart_container(container_object):
                                         " with error message: _{2}_".format(container_object.name, docker_host, err))
 
 
-def container_recovered(container_object):
+def container_recovered(container_object) -> None:
     logging.info("Container %s has recovered and is now healthy!", container_object.name)
     notification_content['text'] = ("[Container watchdog]: Container: [ *_{0}_* ] has *recovered* with healthstatus: [ _{1}_ ] and state: [ _{2}_ ]"
                                     " on hostmachine [ _{3}_ ]".format(container_object.name, container_health_status, container_status, docker_host))
