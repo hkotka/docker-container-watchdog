@@ -27,10 +27,8 @@ jobs:
         pip install prospector
     - name: Lint with prospector
       run: |
-        # stop the build if there are Python syntax errors or undefined names
         prospector --strictness=veryhigh --max-line-length=200 .
     - name: Type checking with mypy
       run: |
-        # stop the build if there are mypy type checking errors
         mypy --ignore-missing-imports --follow-imports=silent --show-column-numbers .
 
