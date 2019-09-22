@@ -1,4 +1,5 @@
-# docker-container-watchdog
+# docker-container-watchdog 
+![Github workflow satus](https://github.com/hkotka/docker-container-watchdog/workflows/Python%20package/badge.svg)  
 The script monitors Docker host's container health status, restarting unhealthy containers and alerting via Slack webhook and email.
 
 Script can be deployed to Docker host machine either as Docker container(preferred) or simply by running the script. The script needs access to host machines /var/run/docker.sock. The example docker-compose.yml is pre-configured to mount docker.sock from host machine.  
