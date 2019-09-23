@@ -70,20 +70,20 @@ def restart_container(container_object) -> None:
     try:
         container_object.restart()
         logging.info("Restarted container: %s", container_object.name)
-        notification_content['text'] = ("[Container watchdog]: has *_restarted_* container: [ *_{0}_* ] which had healthstatus: [ _{1}_ ] and state:"
-                                        " [ _{2}_ ] on hostmachine [ _{3}_ ]".format(container_object.name, container_health_status, container_status, docker_host))
+        notification_content['text'] = (f"[Container watchdog]: has *_restarted_* container: [ *_{container_object.name}_* ] which had healthstatus: [ _{container_health_status}_ ] and state:"
+                                        " [ _{container_status}_ ] on hostmachine [ _{docker_host}_ ]")
         if container_object.short_id not in restarted_containers:
             restarted_containers.append(container_object.short_id)
     except Exception as err:
         logging.fatal("%s", err)
-        notification_content['text'] = ("[Container watchdog]: Docker daemon failed to restart container *{0}* on hostmachine *{1}*"
-                                        " with error message: _{2}_".format(container_object.name, docker_host, err))
+        notification_content['text'] = ("[Container watchdog]: Docker daemon failed to restart container *{container_object.name}* on hostmachine *{docker_host}*"
+                                        " with error message: _{err}_")
 
 
 def container_recovered(container_object) -> None:
     logging.info("Container %s has recovered and is now healthy!", container_object.name)
-    notification_content['text'] = ("[Container watchdog]: Container: [ *_{0}_* ] has *recovered* with healthstatus: [ _{1}_ ] and state: [ _{2}_ ]"
-                                    " on hostmachine [ _{3}_ ]".format(container_object.name, container_health_status, container_status, docker_host))
+    notification_content['text'] = (f"[Container watchdog]: Container: [ *_{container_object.name}_* ] has *recovered* with healthstatus: [ _{container_health_status}_ ]"
+                                    " and state: [ _{container_status}_ ] on hostmachine [ _{docker_host}_ ]")
     restarted_containers.remove(container_object.short_id)
 
 
