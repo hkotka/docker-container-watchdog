@@ -1,4 +1,5 @@
 # pylint: disable = broad-except
+import sys
 import logging
 import time
 import json
@@ -28,7 +29,7 @@ try:
     logging.info("Connection to Docker socket OK")
 except Exception as err:
     logging.fatal("%s", err)
-    exit()
+    sys.exit()
 
 
 def send_slack_message(content) -> None:
