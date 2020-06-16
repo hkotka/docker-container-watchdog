@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy Docker container') {
             agent any
             steps {
-                sh 'docker stop container-watchdog'
+                sh 'docker stop container-watchdog || true'
                 sh 'docker run --name container-watchdog --rm -d -v /var/run/docker.sock:/var/run/docker.sock --security-opt label=disable docker-container-watchdog:$BUILD_NUMBER'
             }
         }
